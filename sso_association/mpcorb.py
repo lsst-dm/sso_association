@@ -1,15 +1,37 @@
+import numpy as np
 import pandas as pd
 from astropy.time import Time
+import requests
 
-__all__ = ['read_mpcorb','mpcorb2oorb','unpack_mpc_date', 'convertMPCEpoch', skiprows=43]
+__all__ = ['getmpcorb','read_mpcorb','mpcorb2oorb','unpack_mpc_date', 'convertMPCEpoch']
+
+def getmpcorb(url='https://minorplanetcenter.net/iau/MPCORB/MPCORB.DAT.gz', fname='MPCORB.DAT.gz', verbose=True):
+    """Download IAU Minor Planet Center Orbit format (2020) txt file.
+     
+    Parameters:
+    -----------
+    url ... URL to mpcorb file
+    """
+    
+    #filename = wget.download(url)
+    try:
+        r = requests.get(url, allow_redirects=True)
+        open(fname, 'wb').write(r.content)
+        if (verbose):
+            print('Download complete:', url)
+    except:
+        print("Error in getmpcorb: could not download ", fname, " at ", url)
+        raise 
+    return
 
 
-def read_mpcorb(path2mpcorb):
+def read_mpcorb(path2mpcorb, filternan=True):
     """Read IAU Minor Planet Center Orbit format (2020) from txt file.
     
     Parameters:
     -----------
-    path2mpcorb... path to MPCORB.DAT file
+    path2mpcorb ... path to MPCORB.DAT file
+    filternan   ... filter out NAN entries in the mpcorb file
     
     Returns:
     --------
@@ -25,33 +47,40 @@ def read_mpcorb(path2mpcorb):
                'N_Obs', 'N_Opp', 'yr_1st&last_Obs', 'r.m.s',
                'coarsePerts', 'precisePerts', 'computer',
                'readableName', 'lastObs']
+    skiprows=43
+    
     dtp=[str,float,float,str,float,float,float,float,float,float,float]
     dtypes=dict(zip(col_names,dtp))
 
     mpcorb=pd.read_fwf(path2mpcorb,skiprows=skiprows,colspecs=mpcorb_col_numbers,
                        names=col_names,dytpe=dtypes,index_col=False)
     
-    mpcorb.dropna(subset=['a', 'e','i','node','argperi','M','epoch', 'r.m.s'],inplace=True)
+    if (filternan):
+        mpcorb.dropna(subset=['a', 'e','i','node','argperi','M','epoch', 'r.m.s'],inplace=True)
+     
     return mpcorb
 
-def mpcorb2oorb(mpcorb, nOutFiles=0, pathOut='oorb-dat'):
+def mpcorb2oorb(path2mpcorb, nOutFiles=0, pathOut='mpcorb2oorb', filternan=True):
     """Convert IAU Minor Planet Center Orbit format (2020) to openorb format.
     
     Parameters:
     -----------
-    mpcorb    ... pandas DataFrame containing MPCORB data
-    nOutFiles ... number of files for output (0 will return a pandas Dataframe in oorb format)
-    pathOut   ... path and filename for output files
+    path2mpcorb    ... path to MPCORB data file
+    nOutFiles      ... number of files for output (0 will return a pandas Dataframe in oorb format)
+    pathOut        ... path and filename for output files
+    filternan      ... filter out NAN entries in the mpcorb file
     
     Returns:
     --------
     nOutFiles == 0:
-        mpcorb ... orbits in oorb format
+        mpcorb ... pandas dataframe containing orbits in oorb format
     nOutFiles == 1:
         one file containing all orbits in oorb format
     nOutFiles > 1
         nOutFiles files containing chunks of orbits in oorb format
     """
+    
+    mpcorb=read_mpcorb(path2mpcorb,filternan=filternan)
     
     mpcorb['q']=mpcorb['a'].values*(1.-mpcorb['e']).values
     mpcorb['FORMAT']='COM'

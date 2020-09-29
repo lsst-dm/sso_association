@@ -1,4 +1,4 @@
-from .associations import *
+from .association import *
 from .transforms import *
 from .mpcorb import *
 from .io import *

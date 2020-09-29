@@ -4,9 +4,6 @@ import pandas as pd
 from scipy.spatial import cKDTree
 from .transforms import radec2icrfu
 
-
-
-
 __all__ = ['associateDIA2SSO']
 
 def associateDIA2SSO(diadf,ssodf,rOnSky=2,diara='ra',diadec='decl',ssora='AstRA(deg)',ssodec='AstDec(deg)',
