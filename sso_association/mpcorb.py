@@ -25,13 +25,16 @@ def getmpcorb(url='https://minorplanetcenter.net/iau/MPCORB/MPCORB.DAT.gz', fnam
     return
 
 
-def read_mpcorb(path2mpcorb, filternan=True):
+def read_mpcorb(path2mpcorb, compression='gzip', filternan=True):
     """Read IAU Minor Planet Center Orbit format (2020) from txt file.
     
     Parameters:
     -----------
     path2mpcorb ... path to MPCORB.DAT file
+    compression ... compression type for MPCORB file 
+                    (compatible with pandas.read_fwf)
     filternan   ... filter out NAN entries in the mpcorb file
+
     
     Returns:
     --------
@@ -53,14 +56,14 @@ def read_mpcorb(path2mpcorb, filternan=True):
     dtypes=dict(zip(col_names,dtp))
 
     mpcorb=pd.read_fwf(path2mpcorb,skiprows=skiprows,colspecs=mpcorb_col_numbers,
-                       names=col_names,dytpe=dtypes,index_col=False)
+                       names=col_names,dytpe=dtypes,index_col=False, compression=compression)
     
     if (filternan):
         mpcorb.dropna(subset=['a', 'e','i','node','argperi','M','epoch', 'r.m.s'],inplace=True)
      
     return mpcorb
 
-def mpcorb2oorb(path2mpcorb, nOutFiles=0, pathOut='mpcorb2oorb', filternan=True):
+def mpcorb2oorb(path2mpcorb, pathOut='mpcorb2oorb',nOutFiles=0, compression='gzip', filternan=True):
     """Convert IAU Minor Planet Center Orbit format (2020) to openorb format.
     
     Parameters:
@@ -68,6 +71,8 @@ def mpcorb2oorb(path2mpcorb, nOutFiles=0, pathOut='mpcorb2oorb', filternan=True)
     path2mpcorb    ... path to MPCORB data file
     nOutFiles      ... number of files for output (0 will return a pandas Dataframe in oorb format)
     pathOut        ... path and filename for output files
+    compression    ... compression type for MPCORB file 
+                       (compatible with pandas.read_fwf)
     filternan      ... filter out NAN entries in the mpcorb file
     
     Returns:

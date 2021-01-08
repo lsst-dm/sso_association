@@ -14,11 +14,13 @@ def addVisitId(df,ccdVisitName='ccdVisitId',colName='VisitId'):
 
 
 def createOIFConfig(populationModel='mpcorb.ssm',observerMPCID='W84',
-                    surveyDB='HiTS_2015.db',spkt0=57070, nDays=10, 
-                    spkstep=0.2, nbodyTF=True, 
+                    surveyDB='survey_sql.db',surveyDbQuery="SELECT * FROM ObsHistory",
+                    spkt0=57070, nDays=10, 
+                    spkstep=0.2, nbodyTF='T', 
                     firstVisit=1,nVisits=12,
-                    fovType='instrument_circle.dat', rFovDeg=1.5, 
-                    outputFile='input.config.tst'):
+                    fovType='instrument_circle.dat', rFovDeg=1.5, oifOutputFile='oif_out',
+                    oifOutputFileFormat='csv',
+                    oifInputFile='oif.config'):
 
     
     """Create input config file for ObjectInField survey simulator.
@@ -35,9 +37,12 @@ def createOIFConfig(populationModel='mpcorb.ssm',observerMPCID='W84',
     nbodyTF         ... N-Body propagation (True/False). If False propagation is 2body wrt the Sun
     firstVisit      ... ID of first visit in observation campaing to be considered
     nVisits         ... number of visits past the first visit to consider.
+    surveyDbQuery   ... SQL query for survey database
     fovType         ... Field of View type defined in input file, e.g. circle, camera -> 'instrument_circle.dat' 
     rFovDeg         ... radius of Field of View in degrees.
-    outputFile      ... prints output to file with name outputFile
+    oifInputFile    ... path to and name of ObjectInField input file
+    oifOutputFile      ... path to and name of ObjectInField output file (stdout or file name)
+    oifOutputFileFormat... ObjectInField output file format (csv, HDF5)
     
     Returns:
     --------
@@ -46,7 +51,7 @@ def createOIFConfig(populationModel='mpcorb.ssm',observerMPCID='W84',
     """
     
     nl = "\n"
-    with open(outputFile, 'w') as f:
+    with open(oifInputFile, 'w') as f:
 
         oifConfigFile=["[ASTEROID] \n"+ 
         "Population model    = "+str(populationModel)+nl+ 
@@ -58,7 +63,11 @@ def createOIFConfig(populationModel='mpcorb.ssm',observerMPCID='W84',
         "Survey database     = " + str(surveyDB) + nl +
         "Field1              = " + str(firstVisit) + nl +
         "nFields             = " + str(nVisits) + nl +
-        "Telescope           = " + str(observerMPCID) + nl + nl +
+        "Telescope           = " + str(observerMPCID) + nl +
+        "Surveydbquery       = " + str(surveyDbQuery) + nl + nl +
+        "[OUTPUT] \n"
+        "Output file         = " + str(oifOutputFile) + nl + 
+        "Output format       = " + str(oifOutputFileFormat) + nl + nl +               
         "[CAMERA] \n" +
         "Camera              = " +str(fovType) + nl +
         "Threshold           = " + str(rFovDeg) + nl
